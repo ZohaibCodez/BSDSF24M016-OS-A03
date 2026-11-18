@@ -17,7 +17,7 @@
 
 // Function prototypes
 char** tokenize(char* cmdline);
-int execute(char** arglist);
+int execute(char** arglist, int background);
 
 int handle_builtin(char** arglist);
 
@@ -29,5 +29,19 @@ extern int history_count;
 void add_to_history(const char* cmdline);
 void print_history(void);
 char* history_lookup(const char* cmdline);
+
+#define MAX_JOBS 32
+
+typedef struct {
+    pid_t pid;
+    char  cmd[128];
+} Job;
+
+extern Job jobs[MAX_JOBS];
+extern int job_count;
+
+void add_job(pid_t pid, char** arglist);
+void reap_jobs(void);
+void print_jobs(void);
 
 #endif // SHELL_H

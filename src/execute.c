@@ -61,7 +61,7 @@ static void run_child(char** args) {
     exit(1);
 }
 
-int execute(char* arglist[]) {
+int execute(char* arglist[], int background) {
     // 1. Is there a pipe in the command?
     int pipe_pos = -1;
     for (int i = 0; arglist[i] != NULL; i++) {
@@ -82,7 +82,12 @@ int execute(char* arglist[]) {
         }
         if (cpid == 0) run_child(arglist);
 
-        waitpid(cpid, &status, 0);
+        if (background) {
+            add_job(cpid, arglist);
+            printf("[%d] %d\n", job_count, (int)cpid);
+        } else {
+            waitpid(cpid, &status, 0);
+        }
         return 0;
     }
 
@@ -137,7 +142,12 @@ int execute(char* arglist[]) {
     // PARENT: must close both ends too, or the reader never sees end-of-file
     close(fd[0]);
     close(fd[1]);
-    waitpid(left, NULL, 0);
-    waitpid(right, NULL, 0);
+    if (background) {
+        add_job(right, arglist);
+        printf("[%d] %d\n", job_count, (int)right);
+    } else {
+        waitpid(left, NULL, 0);
+        waitpid(right, NULL, 0);
+    }
     return 0;
 }

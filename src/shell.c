@@ -23,13 +23,13 @@ int handle_builtin(char** arglist) {
         printf("  exit        - terminate the shell\n");
         printf("  cd <dir>    - change the current directory\n");
         printf("  help        - show this help message\n");
-        printf("  jobs        - list background jobs (not implemented yet)\n");
+        printf("  jobs        - list running background jobs\n");
         printf("  history     - show recent commands (!n re-runs command n)\n");
         return 1;
     }
 
     if (strcmp(arglist[0], "jobs") == 0) {
-        printf("Job control not yet implemented.\n");
+        print_jobs();
         return 1;
     }
 
@@ -117,7 +117,7 @@ char** tokenize(char* cmdline) {
         if (*cp == '\0') break;
 
         int len = 0;
-        if (*cp == '<' || *cp == '>' || *cp == '|') {    // operator = one-character token
+        if (*cp == '<' || *cp == '>' || *cp == '|' || *cp == '&') {    // operator = one-character token
             buf[len++] = *cp++;
         } else {                                         // normal word
             char quote = 0;                              // 0 = not inside quotes
@@ -128,7 +128,7 @@ char** tokenize(char* cmdline) {
                 } else if (*cp == '"' || *cp == '\'') {
                     quote = *cp;                         // opening quote
                 } else if (*cp == ' ' || *cp == '\t' ||
-                           *cp == '<' || *cp == '>' || *cp == '|') {
+                           *cp == '<' || *cp == '>' || *cp == '|' || *cp == '&') {
                     break;                               // end of word
                 } else {
                     buf[len++] = *cp;
