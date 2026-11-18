@@ -1,10 +1,14 @@
 #include "shell.h"
+#include <readline/readline.h>
+#include <readline/history.h>
 
 int main() {
     char* cmdline;
     char** arglist;
 
-    while ((cmdline = read_cmd(PROMPT, stdin)) != NULL) {
+    // readline() prints the prompt, handles editing, Tab and arrow keys,
+    // and returns a malloc'd string (or NULL on Ctrl+D).
+    while ((cmdline = readline(PROMPT)) != NULL) {
 
         // Step 1: handle "!n" BEFORE tokenizing and BEFORE saving to history
         if (cmdline[0] == '!') {
@@ -15,8 +19,11 @@ int main() {
             printf("%s\n", cmdline);            // show what is being run
         }
 
-        // Step 2: save the command in history
-        add_to_history(cmdline);
+        // Step 2: save the command (only if not empty)
+        if (cmdline[0] != '\0') {
+            add_history(cmdline);       // readline's history -> Up/Down arrows
+            add_to_history(cmdline);    // our own history  -> 'history' and '!n'
+        }
 
         // Step 3: same as before
         if ((arglist = tokenize(cmdline)) != NULL) {
