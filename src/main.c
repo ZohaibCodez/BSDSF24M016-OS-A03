@@ -46,9 +46,13 @@ static int run_command(char* line) {
         arglist[count - 1] = NULL;                // remove the '&' token
     }
 
+    expand_variables(arglist);                    // replace variable names with their values
+
     int status = 0;
     if (arglist[0] != NULL) {                     // (line was not only "&")
-        if (handle_builtin(arglist) == 0)
+        if (is_assignment(arglist[0]))
+            handle_assignment(arglist[0]);        // NAME=value: the shell stores it, no fork
+        else if (handle_builtin(arglist) == 0)
             status = execute(arglist, background);
     }
 

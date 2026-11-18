@@ -44,4 +44,12 @@ void add_job(pid_t pid, char** arglist);
 void reap_jobs(void);
 void print_jobs(void);
 
+// ---------- Shell variables ----------
+void set_variable(const char* name, const char* value);
+const char* get_variable(const char* name);
+void print_variables(void);
+int  is_assignment(const char* token);
+void handle_assignment(const char* token);
+void expand_variables(char** arglist);
+
 #endif // SHELL_H
