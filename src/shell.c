@@ -60,3 +60,36 @@ char** tokenize(char* cmdline) {
     arglist[argnum] = NULL;
     return arglist;
 }
+
+// Returns 1 if arglist[0] was a built-in (and was handled here), else 0.
+int handle_builtin(char** arglist) {
+    if (strcmp(arglist[0], "exit") == 0) {
+        printf("Shell exited.\n");
+        exit(0);
+    }
+
+    if (strcmp(arglist[0], "cd") == 0) {
+        if (arglist[1] == NULL) {
+            fprintf(stderr, "cd: missing directory\n");
+        } else if (chdir(arglist[1]) != 0) {
+            perror("cd");   // e.g. "cd: No such file or directory"
+        }
+        return 1;
+    }
+
+    if (strcmp(arglist[0], "help") == 0) {
+        printf("Built-in commands:\n");
+        printf("  exit        - terminate the shell\n");
+        printf("  cd <dir>    - change the current directory\n");
+        printf("  help        - show this help message\n");
+        printf("  jobs        - list background jobs (not implemented yet)\n");
+        return 1;
+    }
+
+    if (strcmp(arglist[0], "jobs") == 0) {
+        printf("Job control not yet implemented.\n");
+        return 1;
+    }
+
+    return 0;   // not a built-in
+}
