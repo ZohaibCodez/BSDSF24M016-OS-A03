@@ -1,47 +1,6 @@
 #include "shell.h"
 
 
-char** tokenize(char* cmdline) {
-    // Edge case: empty command line
-    if (cmdline == NULL || cmdline[0] == '\0' || cmdline[0] == '\n') {
-        return NULL;
-    }
-
-    char** arglist = (char**)malloc(sizeof(char*) * (MAXARGS + 1));
-    for (int i = 0; i < MAXARGS + 1; i++) {
-        arglist[i] = (char*)malloc(sizeof(char) * ARGLEN);
-        bzero(arglist[i], ARGLEN);
-    }
-
-    char* cp = cmdline;
-    char* start;
-    int len;
-    int argnum = 0;
-
-    while (*cp != '\0' && argnum < MAXARGS) {
-        while (*cp == ' ' || *cp == '\t') cp++; // Skip leading whitespace
-        
-        if (*cp == '\0') break; // Line was only whitespace
-
-        start = cp;
-        len = 1;
-        while (*++cp != '\0' && !(*cp == ' ' || *cp == '\t')) {
-            len++;
-        }
-        strncpy(arglist[argnum], start, len);
-        arglist[argnum][len] = '\0';
-        argnum++;
-    }
-
-    if (argnum == 0) { // No arguments were parsed
-        for(int i = 0; i < MAXARGS + 1; i++) free(arglist[i]);
-        free(arglist);
-        return NULL;
-    }
-
-    arglist[argnum] = NULL;
-    return arglist;
-}
 
 // Returns 1 if arglist[0] was a built-in (and was handled here), else 0.
 int handle_builtin(char** arglist) {
@@ -120,4 +79,72 @@ char* history_lookup(const char* cmdline) {
         return NULL;
     }
     return strdup(history[n - 1]);
+}
+
+
+// ---------- Tokenizer ----------
+// Splits a line into words. Rules:
+//   * words are separated by spaces/tabs
+//   * '<', '>' and '|' are always their own token (even without spaces)
+//   * "double" or 'single' quotes keep spaces inside one word (quotes are removed)
+// Returns a NULL-terminated array of malloc'd strings, or NULL for an empty line.
+
+
+// ---------- Tokenizer ----------
+// Splits a line into words. Rules:
+//   * words are separated by spaces/tabs
+//   * '<', '>' and '|' are always their own token (even without spaces)
+//   * "double" or 'single' quotes keep spaces inside one word (quotes are removed)
+// Returns a NULL-terminated array of malloc'd strings, or NULL for an empty line.
+
+
+// ---------- Tokenizer ----------
+// Splits a line into words. Rules:
+//   * words are separated by spaces/tabs
+//   * '<', '>' and '|' are always their own token (even without spaces)
+//   * "double" or 'single' quotes keep spaces inside one word (quotes are removed)
+// Returns a NULL-terminated array of malloc'd strings, or NULL for an empty line.
+char** tokenize(char* cmdline) {
+    if (cmdline == NULL || cmdline[0] == '\0') return NULL;
+
+    char** arglist = malloc(sizeof(char*) * (MAXARGS + 1));
+    char* buf = malloc(strlen(cmdline) + 1);    // a token can never be longer than the line
+    char* cp = cmdline;
+    int argnum = 0;
+
+    while (*cp != '\0' && argnum < MAXARGS) {
+        while (*cp == ' ' || *cp == '\t') cp++;          // skip spaces
+        if (*cp == '\0') break;
+
+        int len = 0;
+        if (*cp == '<' || *cp == '>' || *cp == '|') {    // operator = one-character token
+            buf[len++] = *cp++;
+        } else {                                         // normal word
+            char quote = 0;                              // 0 = not inside quotes
+            while (*cp != '\0') {
+                if (quote) {
+                    if (*cp == quote) quote = 0;         // closing quote
+                    else buf[len++] = *cp;
+                } else if (*cp == '"' || *cp == '\'') {
+                    quote = *cp;                         // opening quote
+                } else if (*cp == ' ' || *cp == '\t' ||
+                           *cp == '<' || *cp == '>' || *cp == '|') {
+                    break;                               // end of word
+                } else {
+                    buf[len++] = *cp;
+                }
+                cp++;
+            }
+        }
+        buf[len] = '\0';
+        arglist[argnum++] = strdup(buf);
+    }
+    free(buf);
+
+    if (argnum == 0) {          // line had only spaces
+        free(arglist);
+        return NULL;
+    }
+    arglist[argnum] = NULL;
+    return arglist;
 }
