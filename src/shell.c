@@ -25,6 +25,7 @@ int handle_builtin(char** arglist) {
         printf("  help        - show this help message\n");
         printf("  jobs        - list running background jobs\n");
         printf("  history     - show recent commands (!n re-runs command n)\n");
+        printf("  set         - show all shell variables (NAME=value to define one)\n");
         return 1;
     }
 
