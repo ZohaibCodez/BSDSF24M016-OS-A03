@@ -21,4 +21,13 @@ int execute(char** arglist);
 
 int handle_builtin(char** arglist);
 
+#define HISTORY_SIZE 20
+
+extern char* history[HISTORY_SIZE];
+extern int history_count;
+
+void add_to_history(const char* cmdline);
+void print_history(void);
+char* history_lookup(const char* cmdline);
+
 #endif // SHELL_H

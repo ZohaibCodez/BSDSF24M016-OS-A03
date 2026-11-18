@@ -83,6 +83,7 @@ int handle_builtin(char** arglist) {
         printf("  cd <dir>    - change the current directory\n");
         printf("  help        - show this help message\n");
         printf("  jobs        - list background jobs (not implemented yet)\n");
+        printf("  history     - show recent commands (!n re-runs command n)\n");
         return 1;
     }
 
@@ -91,5 +92,50 @@ int handle_builtin(char** arglist) {
         return 1;
     }
 
+    if (strcmp(arglist[0], "history") == 0) {
+        print_history();
+        return 1;
+    }
+
     return 0;   // not a built-in
+}
+
+
+// ---------- Command history ----------
+char* history[HISTORY_SIZE];   // stored command strings
+int history_count = 0;         // how many are stored right now
+
+// Save a copy of cmdline. If the list is full, drop the oldest one.
+void add_to_history(const char* cmdline) {
+    if (cmdline == NULL || cmdline[0] == '\0') return;   // ignore empty lines
+
+    if (history_count == HISTORY_SIZE) {
+        free(history[0]);                                // forget the oldest
+        for (int i = 1; i < HISTORY_SIZE; i++)
+            history[i - 1] = history[i];                 // shift everything left
+        history_count--;
+    }
+    history[history_count++] = strdup(cmdline);
+}
+
+// Print the stored commands, numbered from 1.
+void print_history(void) {
+    for (int i = 0; i < history_count; i++)
+        printf("%d  %s\n", i + 1, history[i]);
+}
+
+// cmdline looks like "!3". Return a NEW string (copy of command 3), or NULL on error.
+char* history_lookup(const char* cmdline) {
+    char* end;
+    long n = strtol(cmdline + 1, &end, 10);              // read the number after '!'
+
+    if (end == cmdline + 1 || *end != '\0') {            // no digits, or extra junk
+        fprintf(stderr, "!: usage: !<number>\n");
+        return NULL;
+    }
+    if (n < 1 || n > history_count) {
+        fprintf(stderr, "!%ld: event not found\n", n);
+        return NULL;
+    }
+    return strdup(history[n - 1]);
 }
