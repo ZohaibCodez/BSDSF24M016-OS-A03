@@ -1,5 +1,11 @@
 #include "shell.h"
 
+// Turn the status from waitpid() into a simple exit code (0 = success).
+static int exit_code(int status) {
+    if (WIFEXITED(status)) return WEXITSTATUS(status);
+    return 1;                           // killed by a signal: count it as failure
+}
+
 // Runs in the CHILD. Handles "<" and ">" in args:
 //   open the file -> dup2 it onto stdin/stdout -> close the extra fd,
 // then removes the operator and file name from args so exec only sees the command.
@@ -87,6 +93,7 @@ int execute(char* arglist[], int background) {
             printf("[%d] %d\n", job_count, (int)cpid);
         } else {
             waitpid(cpid, &status, 0);
+            return exit_code(status);
         }
         return 0;
     }
@@ -146,8 +153,10 @@ int execute(char* arglist[], int background) {
         add_job(right, arglist);
         printf("[%d] %d\n", job_count, (int)right);
     } else {
+        int status;
         waitpid(left, NULL, 0);
-        waitpid(right, NULL, 0);
+        waitpid(right, &status, 0);
+        return exit_code(status);
     }
     return 0;
 }
